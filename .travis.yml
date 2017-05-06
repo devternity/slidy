@@ -15,7 +15,6 @@ install:
 
 script:
   - ./gradlew bootRepackage
-  - ansible-galaxy install -r provision/deploy-requirements.yml
   - ansible-playbook -i $(terraform output slidy_ip), provision/deploy.yml -e "artifactsDir=../build/libs artifactName=slidy artifactVersion=$TRAVIS_BUILD_NUMBER"
 
 
