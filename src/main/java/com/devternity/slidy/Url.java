@@ -25,7 +25,7 @@ class Url {
         this.url = url;
     }
 
-    private File downloaded() throws IOException {
+    public File downloaded() throws IOException {
         ByteSource bytes = asByteSource(new URL(url));
         File localFile = File.createTempFile("deck", ".deck");
         bytes.copyTo(asByteSink(localFile));

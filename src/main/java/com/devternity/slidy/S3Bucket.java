@@ -10,8 +10,6 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URL;
 
 @Component
 public class S3Bucket implements Storage {
@@ -43,8 +41,8 @@ public class S3Bucket implements Storage {
             }
 
             @Override
-            public URL writtenTo() throws MalformedURLException {
-                return new URL("https://s3.eu-central-1.amazonaws.com/" + bucket + "/" + file.getName());
+            public Url writtenTo() {
+                return new Url("https://s3.eu-central-1.amazonaws.com/" + bucket + "/" + file.getName(), "Bucket item");
             }
         };
     }
