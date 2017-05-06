@@ -30,6 +30,7 @@ dependencies {
     }
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-jetty', version: "${springBootVersion}"
     compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: "${springBootVersion}"
+    compile group: 'commons-validator', name: 'commons-validator', version: '1.6'
     compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.5'
     compile group: 'com.google.guava', name: 'guava', version: '21.0'
     compile group: 'com.github.docker-java', name: 'docker-java', version: '3.0.9'

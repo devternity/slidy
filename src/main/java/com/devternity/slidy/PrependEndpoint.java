@@ -13,15 +13,10 @@ public class PrependEndpoint {
     @PostMapping("/prepend")
     Response prepend(Body $) throws Exception {
 
-//        Map<String, String> params = ImmutableMap.<String, String>builder()
-//                .put("deckUrl", "http://localhost:8080/mintoslatcraft2-160815132905.pdf")
-//                .put("templateUrl", "http://a56d6a2a.ngrok.io/template/index.html?title=bogota")
-//                .build();
-
-        Deck deck = new Deck($.deckUrl);
+        Deck deck = new Deck(new Url($.deckUrl, "Deck url"));
         Deck.Dimensions dimensions = deck.dimensions();
 
-        SlideHtmlTemplate slideHtmlTemplate = new SlideHtmlTemplate($.templateUrl);
+        SlideHtmlTemplate slideHtmlTemplate = new SlideHtmlTemplate(new Url($.templateUrl, "Template url"));
         Slide slide = slideHtmlTemplate.slide(dimensions);
 
         Deck deckWithANewSlide = deck.prepend(slide);
@@ -36,14 +31,10 @@ public class PrependEndpoint {
 }
 
 class Body {
-
     String deckUrl;
     String templateUrl;
-
 }
 
 class Response {
-
     String deckUrl;
-
 }

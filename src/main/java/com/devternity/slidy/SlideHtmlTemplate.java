@@ -17,9 +17,9 @@ import static com.google.common.base.StandardSystemProperty.USER_HOME;
 
 public class SlideHtmlTemplate {
 
-    private final String url;
+    private final Url url;
 
-    public SlideHtmlTemplate(String url) {
+    public SlideHtmlTemplate(Url url) {
         this.url = url;
     }
 
@@ -28,7 +28,7 @@ public class SlideHtmlTemplate {
         CreateContainerResponse container = dockerClient
                 .createContainerCmd("astefanutti/decktape")
                 .withBinds(new Bind(destination().getParent(), new Volume("/slides")))
-                .withCmd(url, destination().getName(), "--size", dimensions.x())
+                .withCmd(url.toString(), destination().getName(), "--size", dimensions.x())
                 .exec();
 
         dockerClient.startContainerCmd(container.getId()).exec();

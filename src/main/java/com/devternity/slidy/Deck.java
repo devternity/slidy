@@ -1,8 +1,10 @@
 package com.devternity.slidy;
 
+import com.devternity.slidy.infra.InvalidValueProvided;
 import com.google.common.base.Suppliers;
 import com.google.common.base.Throwables;
 import com.google.common.io.ByteSource;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.apache.pdfbox.io.MemoryUsageSetting;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -29,22 +31,15 @@ public class Deck {
         this.location = () -> location;
     }
 
-    public Deck(String url) throws IOException {
+    public Deck(Url url) throws IOException {
         this.location = Suppliers.memoize(() -> {
             try {
-                return downloaded(url);
+                return url.downloaded();
             } catch (IOException e) {
                 Throwables.throwIfUnchecked(e);
                 throw new IllegalArgumentException(e);
             }
         });
-    }
-
-    private static File downloaded(String url) throws IOException {
-        ByteSource bytes = asByteSource(new URL(url));
-        File localFile = File.createTempFile("slide", ".slide");
-        bytes.copyTo(asByteSink(localFile));
-        return localFile;
     }
 
     public Dimensions dimensions() throws IOException {
@@ -110,4 +105,6 @@ public class Deck {
         }
 
     }
+
+
 }
