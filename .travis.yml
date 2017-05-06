@@ -1,0 +1,36 @@
+language: java
+
+before_install:
+  - sudo apt-get install ansible
+  - wget https://releases.hashicorp.com/terraform/0.9.0/terraform_0.9.0_linux_amd64.zip -O /tmp/terraform.zip
+  - sudo unzip -d /usr/local/bin/ /tmp/terraform.zip
+  - openssl aes-256-cbc -K $encrypted_ac17b86006ec_key -iv $encrypted_ac17b86006ec_iv -in droplet_rsa.pem.enc -out droplet_rsa.pem -d
+
+install:
+  - terraform init provision
+  - terraform apply > /dev/null
+  - terraform output > provision/tf.env.tmp
+
+script:
+  - ./gradlew bootRepackage
+
+deploy:
+  - ansible-galaxy install -r provision/deploy-requirements.yml
+  - ansible-playbook -i $(terraform output slidy_ip), provision/deploy.yml -e "artifactsDir=../build/libs artifactName=slidy artifactVersion=$TRAVIS_BUILD_NUMBER"
+
+env:
+  global:
+   # DigitalOcean Token (TF_VAR_do_token)
+   - secure: fPR9eJjIIWjK/b3GY0tgKZSAzs6Sgr4Kn/zXlMB+vbZUYULi96oqP8aEFSsCM2ZkE9f8VtUGD9oAN6YJBgSw/F3ssJ8Xac3L4eZeZslHFaPsWwTb0XZvevN7KeMHLmL7bXZ1TKoWElewL/YtRLlYDU43OUndhtxnGnFiE52juLwgmvaIaaBM+y5tZptrOg5ptdZU1bzF7gmOq/NKb3nXQXXuC7ydKElDMKMHfRJcV58YX+RjIZq+2cv+X3GhRuH3L8vx+4q9mPD673Lw7Sugj+9EZQZiQZlvDrPcXmb6MO47NFeLiINgiwhfcLX3z/HOqeFpHx4NFdFaTHLMRJjoMCDsa/14ifYRt3L61vHMXdQQCl/7cY/NoxWt3G38FIKlWlJCFX2vSGkzxIH4juQAJrGj7Qip9vD+/6dhRVatAtz4BceI96oWvV1l90DB2JtDzwAXhbbXVu91b+sPtIbBmkql8i8GoQP5PWlWuxvcnYYxElXHG2sVcWwA5z0YDEiWH8X6vdRfBqAuB0sCvqhW4nfrdZmjEqT1aY6mfgaqc5zf0ZryBd4anDLEcQuQMJwaXVupfj7jNdwDbUnI7GFLEexS+2I+l16zjRqCg6xn4Y+B9W4OR4DsDEEGtU7HcgT6WIZlSdZrbtUI8DeBn/o+GshDSZ7ZLaNGWeHXKCsfV10=
+
+   # AWS Secret Key (TF_VAR_aws_secret_key)
+   - secure: pZlf5R2H+EM7qy43kEzes0uYnlSenS+3Qvf29ZFsTKuo95NZABBIJvo7G6LnZA71Z7Byvw2EEj27JKBo9Hpp4UFiVqw29xkZ+9bZJ4Q43kCa0trzpUuSVhTqOIWYFLUiHzYTF/aa9Mx+eJ99dSP/IC4TXvUnlo3hSzZ96ECVysOOyTjoaYxBoxBT8nr/Ta2b2wzJbDI5JH1lx0QVYqDXRoS4KVRE1zynTFX9z+GgT+lWVU3soL5nHDGVXU9Yb9pG9a/CkLOIE0/BknczkL5ezOJuwrFMibLIs8LU44xfOgCoPrrNcTORgozl/ecLc7SW2I2SvkzrTHxHMr/BVfjhY3QaxvQbDRSkfEcUJpQWLzf6bdHTEj6Hpk/f9dlQlDSSruQZQPK+WtWvF5XBw10vj0++rFJr4eBpOd4kDeCWxk0YnEQsD4J7FJosNrAQys/JdS5Cqj5hIkdb/CnM20FAJg+gXjgqzNlTP4N+CfcgR4hGpCFXrH/xbxprEbbE43AUuu52fx60St+YiyKB4GtSgy0cGTMRny3DGf3Aa1LjnH9ttUM1WJMvkCAe4I8TORtGjBZnuqTdPR91zGzoWHf/6ehCrxLXOg5zsZARAnlT6J9SlO70cYYqqb/RX5qf1Sp7vDf4llAeWANpOdPgmImdr+c98/Wu13eMj0g5yrblEr0=
+
+   # AWS Access Key (TF_VAR_aws_access_key)
+   - secure: ebYZrb2xheuglXv525zBWIXn2GMDwkxR5uHJaSAPaUr+2sunq5acAf9oBhq4f1yXOq488XCBYR9SzD7R4BivkqP2/NnR1df3LYaIZlIwKWOUz2+0oGdQ44jq2nnJP1+djQLOWbtExscF6ZfC3V/p7si5txf5igLHxttv1yeXkMy3PjQqsFyMGePrLYMZhHfdrRKReDrAu9A8c5LeQ8GETsTdEBod2AM76bvT/THARXUqCZ+WF8zGXwjl+BTnuPb96p/JcGaneGhC+sPHRbP7wz/YDzPRYpEnNXHCUc5Dy/0ZfTZbPGG6LUjPMr7rIm4VschRzWoYE/M5F+rOSkqatF6kqJsNEd/+jGtVqnlX5jpn6J9MeXw5xnlh0pNxpyW4sgc3pXOCEN0oc7QCwjggwY0q6KH4J9JOcirdtZlRBhuihbEDrXV4VTLUpyaJpDK8MktmpZ01z5o1/Zla59uLV5QBH3o3MCs8JBEalgBPmli2SrXN2o26fgObbUwUQOkNVA6FfS3WGmRYFP+QqKujcsZ31Xats/TZIGIkCh5V5SD24uswZTx3BS70zQ8LNrSdYKgKAGBRqPs6YCWOtC6Dq9Y5o9tzZPh6r4C7Whssc43bgyDTTS4BfJXKNWxahirWpML7nuJt3gfLp5y03Dc8ASlTBJbZ22huQdIBGZCj8ac=
+
+   # AWS Access Key for TF Backend (AWS_ACCESS_KEY_ID)
+   - secure: Qe7snCLbeQG+HFt2YEv5PrcIICeVW3VoovVhOCRaZ1JTIgiMpGEZM6kepGnCqPKmQTnwB0FK7PNV0QZ3RW1lTyWkm7wiKxPn1PAqFNipoBAdVrbFUms38eA/bZGl6ZVPsPmhmyy5q2N/ZKseJaH1HDMGZYo4kTV9LYVXKdZNtr0jgldApk0/UTxm9Yq3y35Vp+AGvqoqKr9v/h2DTAFJ//lxP/le2VxwFuRuPIJRHePJGAB/6Ruc9u1sLh6zpoZYTgQKzr1q1snV7JDSagqsvKnagLcxnAZj5t3Ff8+WPzwRQ9Upwr6+/U3thx1r8ibcmaHlmJnZrfSp2zB1W/LTwQS4phXBufiTrIHEIvlYx4RusigAA55/9WKUGQs64RNovW6qIMQ1bPyW2NBZoag33UJDUuzpIcltTQXCoeNuzK3W73607daf9tC7Gj8up6r/4MS6uaYm+kGg+gwu1PBujIRiFWAmMNjaClTnXTnUbUgk8t2ytsaCku7zwpvW6t2SiA5vPkWFr+7Zg92p4jifFn5GpWdEeEE/G6P3su8UkP6/R2tXWyPT3Hn6IE6ZQ7C9hL8YGnqdmUeVRCxhjQn7+fr++mD2nluPi5/CaTNJotOl17Kqg3oc9EXte2/NAkngpFX5PChJVOlCd5QE0945ZE93FO8ieYVzaAD7KpRnueM=
+
+   # AWS Secret Key for TF Backend (AWS_ACCESS_KEY_ID)
+   - secure: v2phespBjadqxwIuE1u36oqrtgpL1st4nfXpk9NVVy0x4hG93yNyI19w1jTnkoSBwWFRwqI5XinkRvxL+s4Jpaxxb5COF5yoxY4QwSGjhO09rpbjs/Eqj7MHsKqmf3m6gJtobTfmHktfZD3EKNIji9sR20wO0/jr9TAty+AXJ+s3QTZ6Gv5PeMBOLxPJmVKElJSs8AKv1NLCEnZENMj0sLje+9NnitNkQ11cGCFrnbp+licg3o3r6OyJTFJZ/GzR25fEW+iFOT54byczgU8ujNkt8T5NBNMbz/N15ub3bsdjSHdd5EPtWQwcaQ8DGTslzkZ2a86KP6gzLnke9xyBo6YlBWRsM1jG6jyvkVkPlG0JJQ/PG0x5pYI3Ib6GLXHF5ujyIR2RKC/Cn+8Klb1Ih2ViNz+3/BBcJ/VHYwWx/3USdd7b2AgZ33iDLkUrpGBfUUMJjvPbpPwUb8OBU8+Sc5kr/9Jv14Dmuy++AdIlljePWNomAhKn+du3MFrpWvhQ8qyR1d7nEbWtCIYr/bAPXT010QyQdxoFGpSIn2AxVVVTg0rCuZGbW7DX4g4+hYxK9mj1JOU6dUTlAiZKTjizigAAWIvo0i9AQYJ8fPu3tkKDBXdivQmqe2nZNqsE7AmUrPQZF3zpPiPdlrjU/gIknQ1eBGXVj33nhEJtB2N6V/E=

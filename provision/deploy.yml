@@ -1,0 +1,61 @@
+---
+- name: Deploy the application
+  hosts: all
+  gather_facts: false
+  pre_tasks:
+    - raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+  roles:
+    - ansible-java8-oracle
+  tasks:
+    - name: configure service daemon for {{artifactName}}
+      template: src=systemd.service.j2 dest=/etc/systemd/system/{{artifactName}}.service backup=yes mode=0644
+
+    - name: create a dir for {{artifactName}}
+      file: path=/home/apps state=directory
+
+    - name: ensure {{artifactName}} user is present
+      user: name={{artifactName}}
+
+    - name: transfer {{artifactName}}
+      copy: src={{artifactsDir}}/{{artifactName}}-{{artifactVersion}}.jar dest=/home/apps/{{artifactName}}-{{artifactVersion}}.jar force=true
+      notify:
+      - (re)start {{artifactName}} version {{artifactVersion}}
+      - check if {{artifactName}} is running
+
+    - name: create a temporary directory for storing configuration fragments
+      tempfile:
+        state: directory
+        suffix: env
+      register: conf_fragments
+
+    - name: prepare systemd configuration fragment {{artifactName}}
+      template: src=systemd.env.j2 dest={{conf_fragments.path}}/systemd.env
+
+    - name: prepare terraform configuration fragment {{artifactName}}
+      template: src=tf.env.tmp dest={{conf_fragments.path}}/tf.env
+      ignore_errors: yes
+
+    - name: assemble configuration fragments
+      assemble: src={{conf_fragments.path}} dest=/home/apps/{{artifactName}}-{{artifactVersion}}.env backup=yes owner={{artifactName}} force=true
+      notify:
+      - (re)start {{artifactName}} version {{artifactVersion}}
+      - check if {{artifactName}} is running
+#    - name: prepare configuration for {{artifactName}}
+#      template: src=systemd.env.j2 dest=/home/apps/{{artifactName}}-{{artifactVersion}}.env backup=yes owner={{artifactName}} force=true
+
+#      notify:
+#      - (re)start {{artifactName}} version {{artifactVersion}}
+#      - check if {{artifactName}} is running
+
+  handlers:
+    - name: (re)start {{artifactName}} version {{artifactVersion}}
+      systemd: daemon_reload=yes state=restarted name={{artifactName}}
+    - name: check if {{artifactName}} is running
+      uri:
+        url: http://{{inventory_hostname}}:8080/health
+        return_content: true
+      register: health
+      until: health.content.find("UP") != -1
+      retries: 5
+      delay: 6
+      changed_when: false

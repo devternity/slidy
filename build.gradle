@@ -1,0 +1,37 @@
+buildscript {
+    ext {
+        springBootVersion = '1.5.3.RELEASE'
+    }
+    repositories {
+        jcenter()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+repositories {
+    jcenter()
+    mavenCentral()
+}
+
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+
+group = 'devternity'
+version = System.env.TRAVIS_BUILD_NUMBER ?: 'UNSPECIFIED';
+
+sourceCompatibility = 1.8
+
+dependencies {
+    compile(group: 'org.springframework.boot', name: 'spring-boot-starter-web', version: "${springBootVersion}") {
+        exclude module: "spring-boot-starter-tomcat"
+    }
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-jetty', version: "${springBootVersion}"
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: "${springBootVersion}"
+    compile group: 'org.apache.pdfbox', name: 'pdfbox', version: '2.0.5'
+    compile group: 'com.google.guava', name: 'guava', version: '21.0'
+    compile group: 'com.github.docker-java', name: 'docker-java', version: '3.0.9'
+    compile group: 'com.jcabi', name: 'jcabi-s3', version: '0.15.1'
+}

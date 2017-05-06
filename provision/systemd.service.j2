@@ -1,0 +1,13 @@
+[Unit]
+Description={{artifactName}} app
+
+[Service]
+User={{artifactName}}
+ExecStart=/usr/bin/java -jar /home/apps/{{artifactName}}-{{artifactVersion}}.jar > /var/log/{{artifactName}}.log 2>&1
+Restart=on-failure
+EnvironmentFile=/home/apps/{{artifactName}}-{{artifactVersion}}.env
+
+
+
+[Install]
+WantedBy=multi-user.target
