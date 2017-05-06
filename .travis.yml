@@ -5,7 +5,7 @@ jdk:
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install software-properties-common
-  - sudo apt-add-repository ppa:ansible/ansible
+  - sudo apt-add-repository ppa:ansible/ansible -y
   - sudo apt-get -qq update
   - sudo apt-get install ansible
   - ansible --version
